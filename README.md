@@ -1,5 +1,5 @@
 # Demo_Project_Chatting_Service
-Small-showcase-projects
+Small-showcase-project written in Java 8
 
 # README #
 

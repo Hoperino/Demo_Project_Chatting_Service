@@ -20,3 +20,5 @@ You can write to me at : mihailmilkov94@gmail.com
 ### Where can i find the classes? ###
 
 The classes are in folder "src/MultiChat"
+
+The other folder out/.../MultiChat contains the compiled classes 

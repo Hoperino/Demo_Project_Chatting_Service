@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
  *
  * NOTES: To keep track of clients, ArrayList is used. The method that accesses the list is synchronized. In addition,
  * I have included small MySQL server that can be used to store all of the chatting data. To handle connection and
- * interface with the DB server, I have created MySQLDBHandler.java that is used in the ClientHandler to first record
+ * interface with the DB server, I have created MySQLDBHandler.java that is used in the ClientHandler class to first record
  * all of the received data and then disseminate it to other clients.
  *
  * The server listens on port 8000

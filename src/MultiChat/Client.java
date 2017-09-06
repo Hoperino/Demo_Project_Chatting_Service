@@ -96,7 +96,6 @@ public class Client extends Application{
 
         ExecutorService service = Executors.newCachedThreadPool();          //Execute UpdateTask in separate Thread
         Platform.runLater(()->{
-                if (toServer == null)System.out.print("NIL!!!");
                 service.execute(new UpdateTask(fromServer));
                 service.shutdown();
         });

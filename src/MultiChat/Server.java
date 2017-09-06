@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +34,10 @@ import java.util.concurrent.Executors;
  * to the output stream of the others. This means that the client-side should implement format check before sending.
  * The server is simply built, therefore restraints and complexity are left for the client.
  *
- * NOTES: To keep track of clients, ArrayList is used. The method that accesses the list is synchronized.
+ * NOTES: To keep track of clients, ArrayList is used. The method that accesses the list is synchronized. In addition,
+ * I have included small MySQL server that can be used to store all of the chatting data. To handle connection and
+ * interface with the DB server, I have created MySQLDBHandler.java that is used in the ClientHandler to first record
+ * all of the received data and then disseminate it to other clients.
  *
  * The server listens on port 8000
  *
@@ -46,11 +50,18 @@ import java.util.concurrent.Executors;
  */
 public class Server extends Application {
 
+
+    //Set up the database handler
     /*
-     * Create list of all clients
+     *  Assume that a MySQL server is running on localhost and has a database called "chatDB"
+     *  The username is "root" and there is no password
+     *
+     *  Note: I used WAMPSERVER
      */
 
-    private ArrayList<ChatClientHandler> clients = new ArrayList<>();
+    private MySQLDBHandler dbHandler = new MySQLDBHandler("chatDB","root","");
+
+    private ArrayList<ChatClientHandler> clients = new ArrayList<>();       // Create list of all clients
 
     private TextArea txArea; //this it the area if the server terminal
 
@@ -77,6 +88,8 @@ public class Server extends Application {
                     txArea.appendText("Server started at: "+ new Date()+"  Listening on port: "+ serverSocket.getLocalPort()+"\n");
                 });
 
+                dbHandler.cleanDB();                    //reset DB
+
                 while (true){
                     Socket socket = serverSocket.accept();
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -97,11 +110,11 @@ public class Server extends Application {
                         service.shutdown();
 
                     });
-
-
                 }
 
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
 
@@ -128,7 +141,7 @@ public class Server extends Application {
         }
 
         /*
-         * Expect input from Client
+         * Expect input from Client:
          * 1.Name
          * 2.String to display
          */
@@ -146,6 +159,15 @@ public class Server extends Application {
                     String input2 = (String) inputStream.readObject();//get text
                     System.out.println("Got text  "+ name + ": "+input2);
 
+                    String sql = "INSERT INTO Entry(name,text) VALUES('" +name+"'" +",'"+input2+"');";
+                    System.out.println(sql);
+                    //First Insert into DB the received text
+                     dbHandler.connect();
+                     dbHandler.setterQuerrie(sql);                          //add entry to table
+                     dbHandler.closeConnection();
+
+                    //Second Update other clients
+
                     updateBoardAll(name+" : "+input2); // Update
 
                     Platform.runLater(()->{
@@ -158,6 +180,9 @@ public class Server extends Application {
 
                 } catch (ClassNotFoundException e) {
                     System.out.println("ClientHandler ClassNotFoundException");
+                    break;
+                } catch (SQLException e) {
+                    System.out.println("ClientHandler SQL connection exception");
                     break;
                 }
             }

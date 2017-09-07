@@ -154,7 +154,13 @@ public class Client extends Application{
 
                 name = username.getText().trim();
                 String text = message.getText().trim();
-                System.out.print(name +" " +text);
+
+                //If there is an empty field : Do not send the message, print out error
+                if(name.compareTo("") == 0 || text.compareTo("") == 0){
+                    System.out.println("Empty field error!");
+                    return;
+                }
+
                 toServer.writeObject(name);
                 toServer.flush();
                 toServer.writeObject(text);

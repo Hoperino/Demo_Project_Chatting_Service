@@ -53,19 +53,16 @@ public class Client extends Application{
     private TextArea txArea = new TextArea();                               //chat board
     private Button submit = new Button("Submit");                      //button for submit
 
-        /*
-        * Small note, the initialization is done here for one reason - ActionListener.
-        * The streams of the socket are required by the constructor of the Listener.
-        * Thus, this allows us to have the socket ready when the listener's constructor
-        * is created.
-        *
-        */
+    //Declare the socket and Streams globally for the client class
+    private Socket socket;
+    private ObjectInputStream fromServer;
+    private ObjectOutputStream toServer;
 
-    private Socket socket = new Socket(host,port);
-    private ObjectInputStream fromServer = new ObjectInputStream(socket.getInputStream());
-    private ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
-
-    public Client() throws IOException{}                                    //This line is mandatory since the initialization throws IOException
+    public Client() throws IOException{
+        socket = new Socket(host,port);                                     //Init socket
+        fromServer = new ObjectInputStream(socket.getInputStream());        //Init InputStream
+        toServer = new ObjectOutputStream(socket.getOutputStream());        //Init OutputStream
+    }
 
 
     @Override
@@ -86,7 +83,7 @@ public class Client extends Application{
         txArea.setEditable(false);                                          //The chat board should be read-only
         username.setMaxWidth(100);
 
-        submit.setOnAction(new ButtonListener(toServer));                   //Add the listener to the button
+        submit.setOnAction(new ButtonListener());                           //Add the listener to the button
 
         //GUI start
         Scene scene = new Scene(new ScrollPane(pane),550,350);
@@ -95,10 +92,8 @@ public class Client extends Application{
         primaryStage.show();
 
         ExecutorService service = Executors.newCachedThreadPool();          //Execute UpdateTask in separate Thread
-        Platform.runLater(()->{
-                service.execute(new UpdateTask(fromServer));
-                service.shutdown();
-        });
+        service.execute(new UpdateTask());
+        service.shutdown();
     }
 
     /*
@@ -109,11 +104,6 @@ public class Client extends Application{
     */
 
     private class UpdateTask implements Runnable{
-       private ObjectInputStream fromServer;
-
-        UpdateTask(ObjectInputStream in){
-            this.fromServer = in;
-        }
 
         @Override
         public void run() {
@@ -150,13 +140,6 @@ public class Client extends Application{
 
     private class ButtonListener implements EventHandler<ActionEvent>{
 
-        private ObjectOutputStream outputStream;
-
-        ButtonListener(ObjectOutputStream out){
-
-            this.outputStream = out;
-
-        }
         @Override
         public void handle(ActionEvent e){
 
@@ -172,10 +155,10 @@ public class Client extends Application{
                 name = username.getText().trim();
                 String text = message.getText().trim();
                 System.out.print(name +" " +text);
-                outputStream.writeObject(name);
-                outputStream.flush();
-                outputStream.writeObject(text);
-                outputStream.flush();
+                toServer.writeObject(name);
+                toServer.flush();
+                toServer.writeObject(text);
+                toServer.flush();
 
                 Platform.runLater(()->{
                     message.clear();

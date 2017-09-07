@@ -96,20 +96,18 @@ public class Server extends Application {
                     ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                     ExecutorService service = Executors.newCachedThreadPool();
                     InetAddress address = socket.getInetAddress();
-                    Platform.runLater(()->{
-                        txArea.appendText("Client: " + address.getHostAddress() +" connected on port: " + socket.getPort()+"\n");
-                        try {
+                    Platform.runLater(()->
+                        txArea.appendText("Client: " + address.getHostAddress() +" connected on port: " + socket.getPort()+"\n"));
+                    try {
 
-                            clients.add(new ChatClientHandler(in,out));     //Add the new client to the list
+                        clients.add(new ChatClientHandler(in,out));     //Add the new client to the list
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-                        service.execute(clients.get(clients.size()-1));
-                        service.shutdown();
-
-                    });
+                    service.execute(clients.get(clients.size()-1));     //start the handler that was just created
+                    service.shutdown();
                 }
 
             } catch (IOException e) {

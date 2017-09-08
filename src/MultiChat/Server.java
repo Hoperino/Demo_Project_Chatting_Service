@@ -222,7 +222,4 @@ public class Server extends Application {
 
     }
 
-    public void finalize() throws SQLException{
-        dbHandler.closeConnection();
-    }
 }

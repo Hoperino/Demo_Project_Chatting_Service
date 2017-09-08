@@ -89,6 +89,7 @@ public class Server extends Application {
                 });
 
                 dbHandler.cleanDB();                    //reset DB
+                dbHandler.connect();                    //set up connection to DB
 
                 while (true){
                     Socket socket = serverSocket.accept();
@@ -138,6 +139,7 @@ public class Server extends Application {
 
         }
 
+
         /*
          * Expect input from Client:
          * 1.Name
@@ -153,20 +155,21 @@ public class Server extends Application {
 
                     String input1 = (String)inputStream.readObject(); //get name
 
-                    name = input1;
-                    String input2 = (String) inputStream.readObject();//get text
-                    System.out.println("Got text  "+ name + ": "+input2);
+                    if (name == null)name = input1;
 
-                    String sql = "INSERT INTO Entry(name,text) VALUES('" +name+"'" +",'"+input2+"');";
+                    String text = (String) inputStream.readObject();//get text
+                    System.out.println("Got text from "+ name + ": "+text);
+
+                    String sql = "INSERT INTO Entry(name,text) VALUES('" +name+"'" +",'"+text+"');";
                     System.out.println(sql);
+
                     //First Insert into DB the received text
-                     dbHandler.connect();
-                     dbHandler.setterQuerrie(sql);                          //add entry to table
-                     dbHandler.closeConnection();
+
+                     dbHandler.setterQuerry(sql);                          //add entry to table
 
                     //Second Update other clients
 
-                    updateBoardAll(name+" : "+input2); // Update
+                    updateBoardAll(name+" : "+text); // Update
 
                     Platform.runLater(()->{
                         txArea.appendText("Client "+ name +"  sent text!"+"\n");    //Write on server that a message was passed
@@ -217,5 +220,9 @@ public class Server extends Application {
 
         }
 
+    }
+
+    public void finalize() throws SQLException{
+        dbHandler.closeConnection();
     }
 }

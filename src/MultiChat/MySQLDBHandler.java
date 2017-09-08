@@ -52,15 +52,15 @@ public class MySQLDBHandler {
         }
     }
 
-    //Select Querrie
-    public void selectQuerrie(String querrie) throws SQLException {
+    //Select Querry
+    synchronized public void selectQuerry(String querrie) throws SQLException {
         resultSet = statement.executeQuery(querrie);
         System.out.println("Results have been updated!");
 
     }
 
-    //Update,Insert Querrie
-    public int setterQuerrie(String querrie) throws SQLException{
+    //Update,Insert Querry
+    synchronized public int setterQuerry(String querrie) throws SQLException{
         return statement.executeUpdate(querrie);
     }
 
@@ -81,7 +81,7 @@ public class MySQLDBHandler {
         while (resultSetMeta.next()){
             String nameTable = resultSetMeta.getString("TABLE_NAME");
             System.out.println("Cleaned table : "+nameTable);
-            setterQuerrie("truncate"+" "+nameTable +";");
+            setterQuerry("truncate"+" "+nameTable +";");
         }
         this.closeConnection();
     }
